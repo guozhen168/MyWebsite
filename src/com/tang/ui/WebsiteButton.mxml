@@ -1,0 +1,200 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:Button xmlns:fx="http://ns.adobe.com/mxml/2009"
+		  xmlns:s="library://ns.adobe.com/flex/spark"
+		  xmlns:mx="library://ns.adobe.com/flex/mx"
+		  width="90" height="110" buttonMode="true" click="websiteBtnClickHandler(event)"
+		  creationComplete="initBtn(event)" icon="@Embed('images/buttoma.png')"
+		  skinClass="com.tang.ui.skin.WebsiteButtonSkin" toolTip="{this.label}" useHandCursor="true">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import com.tang.common.Icons;
+			import com.tang.common.SqliteConn;
+			
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			
+			
+			internal var editItem:ContextMenuItem = new ContextMenuItem("编辑站点");
+			internal var delItem:ContextMenuItem = new ContextMenuItem("删除站点");
+			//internal var exitItem:ContextMenuItem = new ContextMenuItem("退出");
+			private var conMenu:ContextMenu;
+			//--------------------------------------
+			// 属性
+			//--------------------------------------
+			private var _dao:SqliteConn;
+			private var _siteId:int;
+			private var _path:String;
+			private var _saveWin:WebsiteWin;
+			private var _editFun:Function;
+			private var _delFun:Function;
+			
+			public function get dao():SqliteConn
+			{
+				return _dao;
+			}
+			
+			public function set dao(value:SqliteConn):void
+			{
+				_dao = value;
+			}
+
+			public function get siteId():int
+			{
+				return _siteId;
+			}
+			
+			public function set siteId(value:int):void
+			{
+				_siteId = value;
+			}
+			
+			public function get path():String
+			{
+				return _path;
+			}
+
+			public function set path(value:String):void
+			{
+				_path = value;
+			}
+			
+			public function get saveWin():WebsiteWin
+			{
+				return _saveWin;
+			}
+			
+			public function set saveWin(value:WebsiteWin):void
+			{
+				_saveWin = value;
+			}
+			
+			public function get editFun():Function
+			{
+				return _editFun;
+			}
+			
+			public function set editFun(value:Function):void
+			{
+				_editFun = value;
+			}
+			
+			public function get delFun():Function
+			{
+				return _delFun;
+			}
+			
+			public function set delFun(value:Function):void
+			{
+				_delFun = value;
+			}
+			
+			//---------------------------------------
+			// 事件处理
+			//----------------------------------------
+			protected function initBtn(event:FlexEvent):void
+			{
+				conMenu = new ContextMenu();
+				//隐藏指定的 ContextMenu对象中的所有内置菜单项（“设置”除外）。
+				conMenu.hideBuiltInItems();
+				
+				//将子菜单系添加到子菜单中
+				conMenu.customItems.push(editItem);
+				conMenu.customItems.push(delItem);
+				//contextMenu.customItems.push(exitItem);
+				
+				//为每个子菜单项添加监听事件
+				editItem.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, menuItemHandler);
+				delItem.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, menuItemHandler);
+				//exitItem.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, menuItemHandler);
+				
+				//contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, menuHandler);
+				
+				this.contextMenu = conMenu;
+				
+			}
+			
+			private var file:File = new File();
+			private var nativeProcessStartupInfo:NativeProcessStartupInfo;
+			protected function websiteBtnClickHandler(event:MouseEvent):void
+			{
+				if(event.currentTarget["path"]) {
+					//trace(event.currentTarget["path"]);
+					var path:String = event.currentTarget["path"];
+					if(path.indexOf(".exe") > -1) {
+						trace(path);
+						try
+						{
+							NativeApplication.nativeApplication.autoExit = true;
+							file = file.resolvePath(path);
+							nativeProcessStartupInfo = new NativeProcessStartupInfo();
+							nativeProcessStartupInfo.executable = file;
+							//file.openWithDefaultApplication();
+							var process:NativeProcess = new NativeProcess();
+							process.start(nativeProcessStartupInfo);
+							Alert.show("操作成功，请等待应用程序的启动，如果未能启动，请在系统中检查该应用程序是否能正常启动。", "温馨提示", 
+								Alert.OK, null, null, Icons.ICON_OK);
+						} 
+						catch(error:Error) 
+						{
+							Alert.show(error.message);
+						}
+					} else {
+						var urlReq:URLRequest = new URLRequest(path); 
+						navigateToURL(urlReq);
+					}
+				}
+			}
+			
+			/* protected function menuHandler(event:ContextMenuEvent):void {
+				trace("menuHandler");
+				
+			} */
+			
+			protected function menuItemHandler(event:ContextMenuEvent):void {
+				var item:ContextMenuItem = ContextMenuItem(event.currentTarget);
+				var caption:String = item.caption;
+				switch(caption)
+				{
+					case editItem.caption:
+					{
+						//trace("编辑站点");
+						SecureWin.show(function():void {
+							if(_editFun != null)
+								_editFun();
+							saveWin.load(label, path, _siteId);
+							saveWin.setWinConfig();
+						}, dao, this);
+						break;
+					}
+					case delItem.caption:
+					{
+						SecureWin.show(function():void {
+							deleteWebsite();
+						}, dao, this);
+						
+						break;
+					}
+					default:
+					{
+						Alert.show(caption, "右键菜单项");
+						break;
+					}
+				}
+			}
+			
+			public function deleteWebsite():void {
+				Alert.show("是否删除【" + this.label + "】", "温馨提示", Alert.YES | Alert.NO, 
+					null, function(evt:CloseEvent):void {
+						if(evt.detail == Alert.YES) {
+							if(_delFun != null)
+								_delFun(_siteId);
+						}
+					});
+			}
+		]]>
+	</fx:Script>
+</s:Button>

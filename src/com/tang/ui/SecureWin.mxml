@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" 
+			   title="密码验证" width="250" height="200" close="closeWinHandler(event)">
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import com.tang.common.Icons;
+			import com.tang.common.SqliteConn;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.managers.PopUpManager;
+			
+			
+			//--------------------------------------
+			// 属性
+			//--------------------------------------
+			private var _pwd:String;
+			private var _dao:SqliteConn;
+			private var _verAfter:Function;
+
+			public function get verAfter():Function
+			{
+				return _verAfter;
+			}
+
+			public function set verAfter(value:Function):void
+			{
+				_verAfter = value;
+			}
+
+
+			public function get dao():SqliteConn
+			{
+				return _dao;
+			}
+
+			public function set dao(value:SqliteConn):void
+			{
+				_dao = value;
+			}
+
+			public function get pwd():String
+			{
+				return _pwd;
+			}
+
+			public function set pwd(value:String):void
+			{
+				_pwd = value;
+			}
+			
+			//--------------------------------------
+			// 事件处理
+			//--------------------------------------
+			protected function verificationHandler(event:Event):void
+			{
+				var stmt1:SQLStatement = dao.createQuery("select * from users where username='admin'");
+				stmt1.addEventListener(SQLEvent.RESULT, userResult);
+				stmt1.addEventListener(SQLErrorEvent.ERROR, dao.errorHandler);
+				stmt1.execute();
+				trace(this._pwd);
+				if(this.password.text == this._pwd) {
+					this.closeWin();
+					if(this.verAfter != null)
+						this.verAfter();
+				} else {
+					Alert.show("密码错误！", "温馨提示");
+				}
+			}
+			
+			public function userResult(event:SQLEvent):void {
+				trace("查询成功");
+				var result:SQLResult = event.target.getResult();
+				if(result != null) {
+					var data:ArrayCollection = new ArrayCollection(result.data);
+					this.pwd = data[0]["password"];
+				}
+			}
+			
+			protected function closeWinHandler(event:CloseEvent):void
+			{
+				this.closeWin();
+			}
+			
+			//--------------------------------------
+			// 函数
+			//--------------------------------------
+			public function closeWin():void {
+				this.password.text = "";
+				PopUpManager.removePopUp(this);
+			}
+			
+			public static function show(fun:Function, dao:SqliteConn, perent:Sprite=null):void {
+				var win:SecureWin = new SecureWin();
+				PopUpManager.addPopUp(win, perent, true);
+				PopUpManager.centerPopUp(win);
+				win.dao = dao;
+				win.verAfter = fun;
+				win.password.setFocus();
+			}
+		]]>
+	</fx:Script>
+	
+	<s:Form left="2" right="2" top="2" bottom="2">
+		<s:FormHeading label="用于操作前的密码验证" />
+		<s:FormItem label="密码：">
+			<s:TextInput id="password" displayAsPassword="true" prompt="请输入密码" enter="verificationHandler(event)" />
+		</s:FormItem>
+		<s:FormItem>
+			<s:Button label="确定" click="verificationHandler(event)" icon="{Icons.ICON_OK}" />
+		</s:FormItem>
+	</s:Form>
+</s:TitleWindow>

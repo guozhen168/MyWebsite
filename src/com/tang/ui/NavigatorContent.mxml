@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:NavigatorContent xmlns:fx="http://ns.adobe.com/mxml/2009"
+					xmlns:s="library://ns.adobe.com/flex/spark"
+					xmlns:mx="library://ns.adobe.com/flex/mx"
+					xmlns:ui="com.tang.ui.*" skinClass="com.tang.ui.skin.NavigatorContentSkin"
+					width="100%" height="100%" creationComplete="initNav(event)">
+
+	<fx:Script>
+		<![CDATA[
+			import com.tang.common.SqliteConn;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			
+			private var addBtn:AddWebsiteButton;
+			//---------------------------------------
+			// 属性
+			//---------------------------------------
+			[Bindable]
+			private var _channelId:int;
+			private var _dao:SqliteConn;
+			private var _saveWin:WebsiteWin;
+
+			public function get channelId():int
+			{
+				return _channelId;
+			}
+
+			public function set channelId(value:int):void
+			{
+				_channelId = value;
+			}
+			
+			public function get dao():SqliteConn
+			{
+				return _dao;
+			}
+			
+			public function set dao(value:SqliteConn):void
+			{
+				_dao = value;
+			}
+			
+			public function get saveWin():WebsiteWin
+			{
+				return _saveWin;
+			}
+			
+			public function set saveWin(value:WebsiteWin):void
+			{
+				_saveWin = value;
+			}
+			
+			//----------------------------------------
+			// 事件处理
+			//----------------------------------------
+			internal var addItem:ContextMenuItem = new ContextMenuItem("添加站点");
+			internal var refreshItem:ContextMenuItem = new ContextMenuItem("刷新栏目");
+			private var conMenu:ContextMenu;
+			
+			protected function initNav(event:FlexEvent):void
+			{
+				conMenu = new ContextMenu();
+				//隐藏指定的 ContextMenu对象中的所有内置菜单项（“设置”除外）。
+				conMenu.hideBuiltInItems();
+
+				//将子菜单系添加到子菜单中
+				conMenu.customItems.push(addItem);
+				conMenu.customItems.push(refreshItem);
+				//contextMenu.customItems.push(exitItem);
+				
+				//为每个子菜单项添加监听事件
+				addItem.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, menuItemHandler);
+				refreshItem.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, menuItemHandler);
+				//exitItem.addEventListener(ContextMenuEvent.MENU_ITEM_SELECT, menuItemHandler);
+				
+				//contextMenu.addEventListener(ContextMenuEvent.MENU_SELECT, menuHandler);
+				
+				//this.contextMenu = conMenu;
+				this.contentGroup.contextMenu = conMenu;
+				//trace("-------------initNav---------------", this._channelId);
+				if(!dao) {
+					dao = new SqliteConn();
+				}
+				if(!this._saveWin)
+					this._saveWin = new WebsiteWin();
+				this._saveWin.dao = this.dao;
+				
+				addBtn = new AddWebsiteButton();
+				addBtn.label = "添加站点";
+				addBtn.addEventListener(MouseEvent.CLICK, addBtnclickHandler);
+				refresh();
+			}
+			
+			protected function menuItemHandler(event:ContextMenuEvent):void {
+				var item:ContextMenuItem = ContextMenuItem(event.currentTarget);
+				var caption:String = item.caption;
+				switch(caption)
+				{
+					case addItem.caption:
+					{
+						trace("添加");
+						SecureWin.show(this.addWebsite, dao, this);
+						break;
+					}
+					case refreshItem.caption:
+					{
+						trace("刷新");
+						refresh();
+						break;
+					}
+					default:
+					{
+						Alert.show(caption, "右键菜单项");
+						break;
+					}
+				}
+			}
+			
+			/**
+			 * 查询成功处理
+			 **/
+			protected function selectResult(event:SQLEvent):void {
+				var result:SQLResult = event.target.getResult();
+				if(result != null) {
+					//trace("site查询成功", this);
+					var data:ArrayCollection = new ArrayCollection(result.data);
+					for(var i:int = 0; i < data.length; i++) {
+						var btn:WebsiteButton = new WebsiteButton();
+						btn.label = data[i]["site_name"] || "";
+						btn.path = data[i]["site_address"] || "";
+						btn.siteId = data[i]["id"];
+						btn.dao = this.dao;
+						btn.saveWin = this._saveWin;
+						btn.editFun = this.popUpSaveWin;
+						btn.delFun = this.deleteSite;
+						this.addElement(btn);
+					}
+				}
+			}
+			
+			protected function delResult(event:SQLEvent):void {
+				Alert.show("删除成功！", "温馨提示");
+				refresh();
+			}
+			
+			protected function addBtnclickHandler(event:MouseEvent):void
+			{
+				SecureWin.show(function():void {
+					_saveWin.setWinConfig();
+					popUpSaveWin();
+				}, dao, this);
+			}
+			
+			//----------------------------------------
+			// 函数
+			//----------------------------------------
+			public function addWebsite():void {
+				saveWin.setWinConfig();
+				popUpSaveWin();
+			}
+			
+			public function popUpSaveWin():void {
+				this.saveWin.channelId = this._channelId;
+				this.saveWin.saveAfter = refresh;
+				PopUpManager.addPopUp(this.saveWin, this, true); 
+				PopUpManager.centerPopUp(this.saveWin);
+			}
+			
+			public function refresh():void {
+				this.removeAllElements();
+				var stmt:SQLStatement = dao.createQuery("select * from sites where channel_id=@channel_id");
+				stmt.parameters["@channel_id"] = this._channelId;
+				stmt.addEventListener(SQLEvent.RESULT, selectResult);
+				stmt.addEventListener(SQLErrorEvent.ERROR, dao.errorHandler);
+				stmt.execute();
+				this.addElement(addBtn);
+			}
+			
+			public function deleteSite(siteId:int): void {
+				trace(siteId);
+				if(siteId) {
+					var stmt:SQLStatement = dao.createQuery("delete from sites where id=@id");
+					stmt.parameters["@id"] = siteId;
+					stmt.addEventListener(SQLEvent.RESULT, delResult);
+					stmt.addEventListener(SQLErrorEvent.ERROR, dao.errorHandler);
+					stmt.execute();
+				}
+			}
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+	</fx:Declarations>
+	<s:layout>
+		<s:TileLayout columnWidth="100" rowHeight="120" verticalAlign="top" />
+	</s:layout>
+	
+</s:NavigatorContent>
