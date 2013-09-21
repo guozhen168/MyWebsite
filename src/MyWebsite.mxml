@@ -1,0 +1,160 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:WindowedApplication xmlns:fx="http://ns.adobe.com/mxml/2009"
+					   xmlns:s="library://ns.adobe.com/flex/spark"
+					   xmlns:mx="library://ns.adobe.com/flex/mx"
+					   xmlns:ui="com.tang.ui.*" xmlns:common="com.tang.common.*"
+					   creationComplete="initComplete(event)" showStatusBar="false" >
+	
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<common:SqliteConn id="dao" />
+	</fx:Declarations>
+	<fx:Script>
+		<![CDATA[
+			import com.tang.common.Icons;
+			import com.tang.ui.ChannelWin;
+			import com.tang.ui.NavigatorContent;
+			import com.tang.ui.SecureWin;
+			import com.tang.ui.UserWin;
+			import com.tang.ui.WebsiteWin;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.events.MenuEvent;
+			
+			private var saveWin:WebsiteWin;
+			private var currentNav:NavigatorContent;
+			
+			/**
+			 * 初始化
+			 **/
+			protected function initComplete(event:FlexEvent):void {
+				Alert.yesLabel = "是";
+				Alert.noLabel = "否";
+				
+				saveWin = new WebsiteWin();
+				
+				refresh();
+			}
+			
+			/**
+			 * 查询成功处理
+			 **/
+			protected function selectResult(event:SQLEvent):void {
+				trace("查询成功");
+				var result:SQLResult = event.target.getResult();
+				if(result != null) {
+					var data:ArrayCollection = new ArrayCollection(result.data);
+					for(var i:int = 0; i < data.length; i++) {
+						var tab:NavigatorContent = new NavigatorContent();
+						tab.label = data[i]["channel_name"] || "";
+						tab.channelId = data[i]["id"];
+						tab.dao = this.dao;
+						tab.saveWin = this.saveWin;
+						websiteTabs.addElement(tab);
+					}
+				}
+			}
+			
+			protected function setUserClickHandler(event:MouseEvent):void {
+				SecureWin.show(function():void {
+					UserWin.show(function():void {
+						trace("------修改用户信息成功！------");
+					}, dao, this);
+				}, dao, this);
+			}
+			
+			protected function addChannelClickHandler(event:MouseEvent):void
+			{
+				SecureWin.show(function():void {
+					ChannelWin.show(refresh, dao, this);
+				}, dao, this);
+			}
+			
+			protected function editChannelClickHandler(event:MouseEvent):void
+			{
+				SecureWin.show(function():void {
+					currentNav = websiteTabBar.selectedItem;
+					ChannelWin.show(refresh, dao, this, currentNav.channelId, currentNav.label);
+				}, dao, this);
+			}
+			
+			protected function delChannelClickHandler(event:MouseEvent):void
+			{
+				SecureWin.show(function():void {
+					var stmt:SQLStatement = dao.createQuery("delete from channels where id=@id");
+					currentNav = websiteTabBar.selectedItem;
+					stmt.parameters["@id"] = currentNav.channelId;
+					stmt.addEventListener(SQLEvent.RESULT, delChannelResult);
+					stmt.addEventListener(SQLErrorEvent.ERROR, dao.errorHandler);
+					stmt.execute();
+				}, dao, this);
+			}
+			
+			protected function delChannelResult(event:SQLEvent):void {
+				var result:SQLResult = event.currentTarget.getResult();
+				if(result != null) {
+					var stmt:SQLStatement = dao.createQuery("delete from sites where channel_id=@channel_id");
+					currentNav = websiteTabBar.selectedItem;
+					stmt.parameters["@channel_id"] = currentNav.channelId;
+					stmt.addEventListener(SQLEvent.RESULT, delSitesResult);
+					stmt.addEventListener(SQLErrorEvent.ERROR, dao.errorHandler);
+					stmt.execute();
+				}
+			}
+			
+			protected function delSitesResult(event:SQLEvent):void {
+				var result:SQLResult = event.currentTarget.getResult();
+				if(result != null) {
+					websiteTabs.removeElement(currentNav);
+					Alert.show("成功删除栏目！", "温馨提示");
+				}
+			}
+			
+			protected function reloadClickHandler(event:MouseEvent):void {
+				this.refresh();
+			}
+			
+			//--------------------------------------
+			// 函数
+			//--------------------------------------
+			public function refresh():void {
+				trace("-----------refresh app-----------------");
+				websiteTabs.removeAll();
+				var stmt:SQLStatement = dao.createQuery("select * from channels");
+				stmt.addEventListener(SQLEvent.RESULT, selectResult);
+				stmt.addEventListener(SQLErrorEvent.ERROR, dao.errorHandler);
+				stmt.execute();
+			}
+			
+			
+			
+		]]>
+	</fx:Script>
+	
+	<s:Rect left="0" right="0" top="0" bottom="0"> 
+		<s:fill>
+			<s:LinearGradient rotation="90">
+				<s:GradientEntry alpha="1.0" color="#76D856"/> 
+				<s:GradientEntry alpha="0.5" color="#76D856"/> 
+			</s:LinearGradient> 
+		</s:fill>
+	</s:Rect>
+	
+	<s:Button icon="@Embed('images/gears.png')" width="20" height="20" left="20" top="20" 
+			  toolTip="用户设置" click="setUserClickHandler(event)" />
+	<s:Button icon="{Icons.ICON_ADD}" width="20" height="20" left="20" top="50"
+			  toolTip="添加栏目" click="addChannelClickHandler(event)" />
+	<s:Button icon="{Icons.ICON_EDIT}" width="20" height="20" left="20" top="80"
+			  toolTip="编辑栏目" click="editChannelClickHandler(event)" />
+	<s:Button icon="{Icons.ICON_DEL}" width="20" height="20" left="20" top="110"
+			  toolTip="删除栏目" click="delChannelClickHandler(event)" />
+	<s:Button icon="{Icons.ICON_RELOAD}" width="20" height="20" left="20" top="140"
+			  toolTip="刷新" click="reloadClickHandler(event)" />
+	<ui:TabBar id="websiteTabBar" left="30" top="10" bottom="10" dataProvider="{websiteTabs}"/>
+	<mx:ViewStack id="websiteTabs" left="280" right="10" top="10" bottom="10">
+	</mx:ViewStack>
+	
+</s:WindowedApplication>

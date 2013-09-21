@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="utf-8"?>
+<s:TitleWindow xmlns:fx="http://ns.adobe.com/mxml/2009" 
+			   xmlns:s="library://ns.adobe.com/flex/spark" 
+			   xmlns:mx="library://ns.adobe.com/flex/mx" width="400" height="300" title="修改用户信息"
+			   close="closeWinHandler(event)" creationComplete="creationCompleteHandler(event)">
+	
+	<fx:Script>
+		<![CDATA[
+			import com.tang.common.Icons;
+			import com.tang.common.SqliteConn;
+			
+			import mx.collections.ArrayCollection;
+			import mx.controls.Alert;
+			import mx.events.CloseEvent;
+			import mx.events.FlexEvent;
+			import mx.managers.PopUpManager;
+			
+			//-------------------------------------------
+			// 属性
+			//-------------------------------------------
+			private var _saveAfter:Function;
+			private var _dao:SqliteConn;
+
+			public function get dao():SqliteConn
+			{
+				return _dao;
+			}
+
+			public function set dao(value:SqliteConn):void
+			{
+				_dao = value;
+			}
+
+
+			public function get saveAfter():Function
+			{
+				return _saveAfter;
+			}
+
+			public function set saveAfter(value:Function):void
+			{
+				_saveAfter = value;
+			}
+			
+			
+			//-------------------------------------------
+			// 事件处理
+			//-------------------------------------------
+			protected function creationCompleteHandler(event:FlexEvent):void
+			{
+				loadRecord();
+			}
+			
+			protected function closeWinHandler(event:CloseEvent):void
+			{
+				closeWin();
+			}
+			
+			protected function saveClickHandler(event:MouseEvent):void
+			{
+				if(!this.rname.text) {
+					Alert.show("请输入姓名！", "温馨提示");
+					return ;
+				}
+				if(!this.password.text) {
+					Alert.show("请输入密码！", "温馨提示");
+					return ;
+				}
+				if(!this.rpassword.text) {
+					Alert.show("请输入确认密码！", "温馨提示");
+					return ;
+				}
+				if(this.rpassword.text != this.password.text) {
+					Alert.show("两次输入的密码不相同，请重新输入。", "温馨提示");
+					this.rpassword.text = "";
+					this.password.text = "";
+				} else {
+					var stmt:SQLStatement = _dao.createQuery("update users set rname=@rname, password=@password where username=@username");
+					stmt.parameters["@rname"] = this.rname.text;
+					stmt.parameters["@password"] = this.password.text;
+					stmt.parameters["@username"] = "admin";
+					stmt.addEventListener(SQLEvent.RESULT, saveResult);
+					stmt.addEventListener(SQLErrorEvent.ERROR, dao.errorHandler);
+					stmt.execute();					
+				}
+			}
+			
+			protected function saveResult(event:SQLEvent):void {
+				this.closeWin();
+				if(saveAfter != null)
+					saveAfter();
+				Alert.show("保存成功！", "温馨提示");
+			}
+			
+			protected function selectResult(event:SQLEvent):void {
+				var result:SQLResult = event.target.getResult();
+				if(result != null) {
+					var res:ArrayCollection = new ArrayCollection(result.data);
+					if(res[0]["rname"]) {
+						var str:String = res[0]["rname"];
+						this.rname.text = str;
+					}
+				}
+			}
+			
+			protected function resetClickHandler(event:MouseEvent):void
+			{
+				this.password.text = "";
+				this.rpassword.text = "";
+			}
+			
+			//-------------------------------------------
+			// 函数
+			//-------------------------------------------
+			public function closeWin():void {
+				PopUpManager.removePopUp(this);
+			}
+			
+			public function loadRecord():void {
+				var stmt:SQLStatement = _dao.createQuery("select * from users where username=@username");
+				stmt.parameters["@username"] = "admin";
+				stmt.addEventListener(SQLEvent.RESULT, selectResult);
+				stmt.addEventListener(SQLErrorEvent.ERROR, dao.errorHandler);
+				stmt.execute();	
+			}
+			
+			public static function show(fn:Function, dao:SqliteConn=null, parent:DisplayObject=null):UserWin {
+				var win:UserWin = new UserWin();
+				win.dao = !dao ? new SqliteConn() : dao;
+				win.saveAfter = fn;
+				PopUpManager.addPopUp(win, parent, true);
+				PopUpManager.centerPopUp(win);
+				win.rname.setFocus();
+				return win;
+			}
+			
+			
+		]]>
+	</fx:Script>
+	<fx:Declarations>
+		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
+		<mx:StringValidator id="rn" required="true" source="{rname}" 
+							requiredFieldError="姓名不能为空" property="text" />
+		<mx:StringValidator id="pwd" required="true" source="{password}" 
+							requiredFieldError="密码不能为空" property="text" />
+		<mx:StringValidator id="rpwd" required="true" source="{rpassword}" 
+							requiredFieldError="确认密码不能为空" property="text" />
+	</fx:Declarations>
+	
+	<s:Form left="2" right="2" top="2" bottom="2">
+		<s:FormItem label="姓名：" required="true">
+			<s:TextInput id="rname" maxChars="100" />
+		</s:FormItem>
+		<s:FormItem label="密码：" required="true">
+			<s:TextInput id="password" displayAsPassword="true" />
+		</s:FormItem>
+		<s:FormItem label="确认密码：" required="true">
+			<s:TextInput id="rpassword" displayAsPassword="true" />
+		</s:FormItem>
+		<s:FormItem>
+			<s:layout>
+				<s:HorizontalLayout />
+			</s:layout>
+			<s:Button label="保存" click="saveClickHandler(event)" icon="{Icons.ICON_SAVE}" />
+			<s:Button label="重置" click="resetClickHandler(event)" icon="{Icons.ICON_RESET}" />
+		</s:FormItem>
+	</s:Form>
+</s:TitleWindow>
