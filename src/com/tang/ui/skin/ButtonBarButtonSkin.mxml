@@ -1,11 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?> 
-<s:Skin xmlns:s="library://ns.adobe.com/flex/spark"
-		xmlns:fx="http://ns.adobe.com/mxml/2009"
-		xmlns:ai="http://ns.adobe.com/ai/2009"
-		xmlns:d="http://ns.adobe.com/fxg/2008/dt"
-		xmlns:flm="http://ns.adobe.com/flame/2008" minWidth="170" minHeight="35">
+<s:Skin xmlns:fx="http://ns.adobe.com/mxml/2009"
+			 xmlns:s="library://ns.adobe.com/flex/spark"
+			 xmlns:fb="http://ns.adobe.com/flashbuilder/2009"
+			 minWidth="169" minHeight="38">
 	
 	<fx:Metadata>[HostComponent("spark.components.ButtonBarButton")]</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import com.tang.common.Icons;
+		]]>
+	</fx:Script>
 	
 	<s:states> 
 		<s:State name="up"/> 
@@ -17,7 +21,8 @@
 		<s:State name="downAndSelected"/> 
 		<s:State name="disabledAndSelected"/> 
 	</s:states> 
-	<s:Path data="M 0.5 40.5 C 0.5 43.261 2.739 45.5 5.5 45.5 L 95.5 45.5 C 98.261 45.5 100.5 43.261 100.5 40.5 L 100.5 0.5 L 0.5 0.5 L 0.5 40.5 Z"
+	
+	<!--<s:Path data="M 0.5 40.5 C 0.5 43.261 2.739 45.5 5.5 45.5 L 95.5 45.5 C 98.261 45.5 100.5 43.261 100.5 40.5 L 100.5 0.5 L 0.5 0.5 L 0.5 40.5 Z"
 			winding="nonZero" left="0" right="0" top="0" bottom="0"> 
 		<s:fill> 
 			<s:SolidColor color="#c6fa56"/> 
@@ -25,7 +30,7 @@
 	</s:Path> 
 	
 	<s:Path includeIn="disabledAndSelected,down,downAndSelected,upAndSelected,overAndSelected" 
-			left="0" right="0" top="0" bottom="0"
+			left="2" right="2" top="2" bottom="2"
 			data="M 0.5 40.5 C 0.5 43.261 2.739 45.5 5.5 45.5 L 95.5 45.5 C 98.261 45.5 100.5 43.261 100.5 40.5 L 100.5 0.5 L 0.5 0.5 L 0.5 40.5 Z"
 			winding="nonZero"> 
 		<s:fill> 
@@ -33,15 +38,26 @@
 		</s:fill> 
 	</s:Path>
 	
-	<s:Path includeIn="over" left="0" right="0" top="0" bottom="0"
+	<s:Path includeIn="over" left="2" right="2" top="2" bottom="2"
 			data="M 0.5 40.5 C 0.5 43.261 2.739 45.5 5.5 45.5 L 95.5 45.5 C 98.261 45.5 100.5 43.261 100.5 40.5 L 100.5 0.5 L 0.5 0.5 L 0.5 40.5 Z"
 			winding="nonZero"> 
 		<s:fill> 
 			<s:SolidColor color="#a0f038"/> 
 		</s:fill> 
-	</s:Path> 
+	</s:Path>-->
+	<s:Graphic left="0" top="0" right="0" bottom="0">
+		<s:BitmapImage source="{Icons.ICON_TAB}" />
+	</s:Graphic>
 	
-	<s:Label id="labelDisplay" left="1" right="1" top="1" bottom="1" color="#FFFFFF" textAlign="center"
+	<s:Graphic left="0" top="0" right="0" bottom="0" includeIn="disabledAndSelected,down,downAndSelected,upAndSelected,overAndSelected">
+		<s:BitmapImage source="{Icons.ICON_TAB_SEL}" />
+	</s:Graphic>
+	
+	<s:Graphic left="0" top="0" right="0" bottom="0" includeIn="over">
+		<s:BitmapImage source="{Icons.ICON_TAB_OVER}" />
+	</s:Graphic>
+	
+	<s:Label id="labelDisplay" left="2" right="2" top="2" bottom="2" color="#FFFFFF" textAlign="center"
 			 verticalAlign="middle"> 
 	</s:Label> 
 </s:Skin>

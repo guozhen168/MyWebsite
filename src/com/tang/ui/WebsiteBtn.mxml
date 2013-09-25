@@ -2,9 +2,10 @@
 <s:Button xmlns:fx="http://ns.adobe.com/mxml/2009"
 		  xmlns:s="library://ns.adobe.com/flex/spark"
 		  xmlns:mx="library://ns.adobe.com/flex/mx"
-		  width="90" height="110" buttonMode="true" click="websiteBtnClickHandler(event)"
-		  creationComplete="initBtn(event)" icon="@Embed('images/buttoma.png')"
-		  skinClass="com.tang.ui.skin.WebsiteButtonSkin" toolTip="{this.label}" useHandCursor="true">
+		  width="110" height="110" click="websiteBtnClickHandler(event)"
+		  creationComplete="initBtn(event)" icon="{Icons.ICON_WEB}"
+		  skinClass="com.tang.ui.skin.WebsiteBtnSkin" toolTip="{this.label}" 
+		  buttonMode="true" useHandCursor="true">
 	<fx:Declarations>
 		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
 	</fx:Declarations>

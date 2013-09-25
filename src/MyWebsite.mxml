@@ -13,7 +13,7 @@
 		<![CDATA[
 			import com.tang.common.Icons;
 			import com.tang.ui.ChannelWin;
-			import com.tang.ui.NavigatorContent;
+			import com.tang.ui.NavContent;
 			import com.tang.ui.SecureWin;
 			import com.tang.ui.UserWin;
 			import com.tang.ui.WebsiteWin;
@@ -25,7 +25,7 @@
 			import mx.events.MenuEvent;
 			
 			private var saveWin:WebsiteWin;
-			private var currentNav:NavigatorContent;
+			private var currentNav:NavContent;
 			
 			/**
 			 * 初始化
@@ -48,7 +48,7 @@
 				if(result != null) {
 					var data:ArrayCollection = new ArrayCollection(result.data);
 					for(var i:int = 0; i < data.length; i++) {
-						var tab:NavigatorContent = new NavigatorContent();
+						var tab:NavContent = new NavContent();
 						tab.label = data[i]["channel_name"] || "";
 						tab.channelId = data[i]["id"];
 						tab.dao = this.dao;
@@ -130,31 +130,31 @@
 			}
 			
 			
-			
 		]]>
 	</fx:Script>
 	
 	<s:Rect left="0" right="0" top="0" bottom="0"> 
 		<s:fill>
-			<s:LinearGradient rotation="90">
+			<!--<s:LinearGradient rotation="90">
 				<s:GradientEntry alpha="1.0" color="#76D856"/> 
 				<s:GradientEntry alpha="0.5" color="#76D856"/> 
-			</s:LinearGradient> 
+			</s:LinearGradient> -->
+			<s:BitmapFill fillMode="scale" source="{Icons.ICON_BG}"/> 
 		</s:fill>
 	</s:Rect>
 	
-	<s:Button icon="@Embed('images/gears.png')" width="20" height="20" left="20" top="20" 
-			  toolTip="用户设置" click="setUserClickHandler(event)" />
-	<s:Button icon="{Icons.ICON_ADD}" width="20" height="20" left="20" top="50"
-			  toolTip="添加栏目" click="addChannelClickHandler(event)" />
-	<s:Button icon="{Icons.ICON_EDIT}" width="20" height="20" left="20" top="80"
-			  toolTip="编辑栏目" click="editChannelClickHandler(event)" />
-	<s:Button icon="{Icons.ICON_DEL}" width="20" height="20" left="20" top="110"
-			  toolTip="删除栏目" click="delChannelClickHandler(event)" />
-	<s:Button icon="{Icons.ICON_RELOAD}" width="20" height="20" left="20" top="140"
-			  toolTip="刷新" click="reloadClickHandler(event)" />
-	<ui:TabBar id="websiteTabBar" left="30" top="10" bottom="10" dataProvider="{websiteTabs}"/>
-	<mx:ViewStack id="websiteTabs" left="280" right="10" top="10" bottom="10">
+	<s:Image id="logo" source="{Icons.ICON_LOGO}" left="40" top="20" />
+	<ui:TabBar id="websiteTabBar" left="40" top="100" bottom="10" dataProvider="{websiteTabs}"/>
+	<mx:ViewStack id="websiteTabs" left="260" right="10" top="100" bottom="10">
 	</mx:ViewStack>
-	
+	<ui:IconBtn icon="{Icons.ICON_SET}" left="20" bottom="40" 
+			  toolTip="用户设置" click="setUserClickHandler(event)" />
+	<ui:IconBtn icon="{Icons.ICON_ADD}" left="60" bottom="40"
+			  toolTip="添加栏目" click="addChannelClickHandler(event)" />
+	<ui:IconBtn icon="{Icons.ICON_EDIT}" left="100" bottom="40"
+			  toolTip="编辑栏目" click="editChannelClickHandler(event)" />
+	<ui:IconBtn icon="{Icons.ICON_DEL}" left="140" bottom="40"
+			  toolTip="删除栏目" click="delChannelClickHandler(event)" />
+	<ui:IconBtn icon="{Icons.ICON_RELOAD}" left="180" bottom="40"
+			  toolTip="刷新" click="reloadClickHandler(event)" />
 </s:WindowedApplication>

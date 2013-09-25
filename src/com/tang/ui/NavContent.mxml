@@ -14,7 +14,7 @@
 			import mx.events.FlexEvent;
 			import mx.managers.PopUpManager;
 			
-			private var addBtn:AddWebsiteButton;
+			private var addBtn:AddWebsiteBtn;
 			//---------------------------------------
 			// 属性
 			//---------------------------------------
@@ -88,7 +88,7 @@
 					this._saveWin = new WebsiteWin();
 				this._saveWin.dao = this.dao;
 				
-				addBtn = new AddWebsiteButton();
+				addBtn = new AddWebsiteBtn();
 				addBtn.label = "添加站点";
 				addBtn.addEventListener(MouseEvent.CLICK, addBtnclickHandler);
 				refresh();
@@ -128,7 +128,7 @@
 					//trace("site查询成功", this);
 					var data:ArrayCollection = new ArrayCollection(result.data);
 					for(var i:int = 0; i < data.length; i++) {
-						var btn:WebsiteButton = new WebsiteButton();
+						var btn:WebsiteBtn = new WebsiteBtn();
 						btn.label = data[i]["site_name"] || "";
 						btn.path = data[i]["site_address"] || "";
 						btn.siteId = data[i]["id"];
@@ -195,7 +195,7 @@
 		<!-- 将非可视元素（例如服务、值对象）放在此处 -->
 	</fx:Declarations>
 	<s:layout>
-		<s:TileLayout columnWidth="100" rowHeight="120" verticalAlign="top" />
+		<s:TileLayout columnWidth="100" rowHeight="130" verticalAlign="top" />
 	</s:layout>
 	
 </s:NavigatorContent>

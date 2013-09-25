@@ -7,7 +7,7 @@
 				   xmlns:s="library://ns.adobe.com/flex/spark"
 				   xmlns:fb="http://ns.adobe.com/flashbuilder/2009"
 				   alpha.disabled="0.5"
-				   minWidth="90" minHeight="110">
+				   minWidth="110" minHeight="110">
 	<fx:Metadata>
 		<![CDATA[ 
 		/** 
@@ -16,6 +16,11 @@
 		[HostComponent("spark.components.Button")]
 		]]>
 	</fx:Metadata>
+	<fx:Script>
+		<![CDATA[
+			import com.tang.common.Icons;
+		]]>
+	</fx:Script>
 	
     <!-- states -->
     <s:states>
@@ -25,15 +30,15 @@
         <s:State name="disabled" />
     </s:states>
     
-	<s:Graphic left="0" top="0" right="0" width="90" height="90" horizontalCenter="0">
-		<s:BitmapImage id="iconDisplay" />
+	<s:Graphic left="0" top="0" right="0" bottom="0" horizontalCenter="0" alpha.over="0.8">
+		<s:BitmapImage id="iconDisplay" source="{Icons.ICON_WEB}" />
 	</s:Graphic>
 	
     <!-- layer 8: text -->
     <!--- @copy spark.components.supportClasses.ButtonBase#labelDisplay  -->
-    <s:Label id="labelDisplay" left="2" right="2" top="92" bottom="2" 
-			 maxDisplayedLines="1" verticalAlign="middle"
-			 textAlign="center">
+    <s:Label id="labelDisplay" left="5" right="5" bottom="10" maxDisplayedLines="1"
+			 textAlign="center" verticalAlign="middle"
+			 color="#ffffff">
     </s:Label>
     
 </s:SparkSkin>
